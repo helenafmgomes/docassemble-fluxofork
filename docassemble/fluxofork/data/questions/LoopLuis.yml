@@ -1,0 +1,101 @@
+metadata:
+ title: Title
+---
+sections:
+ - Grantor data
+ - Conclusion
+---
+objects:
+ - grantor: |
+     DAList.using(
+       object_type=Person,
+       ask_number=True,
+       complete_attribute='complete')
+ - grantor[i].child: |
+     DAList.using(
+       object_type=Individual,
+       ask_number=True,
+       complete_attribute='complete')
+---
+section: Grantor data
+progress: 30
+question: |
+ How many grantors?
+fields:
+ - Number: grantor.target_number
+   datatype: integer
+   default: 1
+   min: 1
+---
+code: |
+ grantor[i].name.text
+ grantor[i].address.address
+ grantor[i].child.gather()
+ grantor[i].complete = True
+---
+code: |
+ grantor[i].child[j].name.first
+ grantor[i].child[j].address.address
+ grantor[i].child[j].complete = True
+---
+question: |
+ Grantor ${ ordinal(i) } data:
+fields:
+ - "Name:": grantor[i].name.text
+ - "Type:": grantor[i].person_type
+   datatype: radio
+   choices:
+     - Pessoa Física: individual
+     - Pessoa Jurídica: organization
+ - "Marital status:": grantor[i].marital_status
+   choices:
+     - single: single
+     - married: married
+     - divorced: divorced
+     - widower: widower
+   datatype: radio
+   show if:
+     variable: grantor[i].person_type
+     is: individual
+ - "Representative number:": grantor[i].child.target_number
+   datatype: integer
+   default: 1
+   min: 1
+   show if:
+     variable: grantor[i].person_type
+     is: organization
+---
+code: |
+ if grantor[i].person_type != 'organization':
+   grantor[i].child.target_number = 0
+---
+question: |
+ Grantor address ${ grantor[i] }?
+fields:
+ - "Address:": grantor[i].address.address
+---
+question: |
+ Representative ${ ordinal(j) } of ${ grantor[i] } data:
+fields:
+ - "Name:": grantor[i].child[j].name.first
+---
+question: |
+ Representative ${ grantor[i].child[j] } address?
+fields:
+ - "Address:": grantor[i].child[j].address.address
+---
+mandatory: True
+question: |
+ Grantors:
+subquestion: |
+ % for i in grantor:
+ * ${ i }
+ % endfor
+buttons:
+ Continue: continue
+---
+mandatory: True
+section: Conclusion
+progress: 100
+question: |
+ Here is your document.
